@@ -25,4 +25,41 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+/**
+ * Predictions table to track all spam/ham predictions
+ */
+export const predictions = mysqlTable("predictions", {
+  id: int("id").autoincrement().primaryKey(),
+  message: text("message").notNull(),
+  verdict: mysqlEnum("verdict", ["spam", "ham"]).notNull(),
+  confidence: varchar("confidence", { length: 10 }).notNull(),
+  keywords: text("keywords"),
+  messageType: mysqlEnum("messageType", ["sms", "email"]).default("sms"),
+  userId: int("userId"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Prediction = typeof predictions.$inferSelect;
+export type InsertPrediction = typeof predictions.$inferInsert;
+
+/**
+ * Analytics table to track overall statistics
+ */
+export const analytics = mysqlTable("analytics", {
+  id: int("id").autoincrement().primaryKey(),
+  totalPredictions: int("totalPredictions").default(0).notNull(),
+  spamCount: int("spamCount").default(0).notNull(),
+  hamCount: int("hamCount").default(0).notNull(),
+  truePositives: int("truePositives").default(0).notNull(),
+  trueNegatives: int("trueNegatives").default(0).notNull(),
+  falsePositives: int("falsePositives").default(0).notNull(),
+  falseNegatives: int("falseNegatives").default(0).notNull(),
+  accuracy: varchar("accuracy", { length: 10 }).default("0.95").notNull(),
+  smsTotal: int("smsTotal").default(0).notNull(),
+  emailTotal: int("emailTotal").default(0).notNull(),
+  spamPercentage: varchar("spamPercentage", { length: 10 }).default("0").notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Analytics = typeof analytics.$inferSelect;
+export type InsertAnalytics = typeof analytics.$inferInsert;
