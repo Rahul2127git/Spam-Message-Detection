@@ -242,14 +242,14 @@ export default function Detector() {
                 Batch Upload
               </CardTitle>
               <CardDescription>
-                Upload a CSV file with messages to analyze multiple items at once
+                Upload a file with messages to analyze multiple items at once. Supports CSV, Excel, JSON, TSV, and XML formats.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors">
                 <input
                   type="file"
-                  accept=".csv"
+                  accept=".csv,.xlsx,.xls,.json,.tsv,.xml"
                   onChange={handleBatchUpload}
                   disabled={isLoading}
                   className="hidden"
@@ -259,11 +259,12 @@ export default function Detector() {
                   htmlFor="csv-upload"
                   className="cursor-pointer block"
                 >
+                  <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
                   <p className="text-sm font-medium">
                     Click to upload or drag and drop
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    CSV files only (max 10MB)
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Supported: CSV, Excel (.xlsx, .xls), JSON, TSV, XML (max 10MB)
                   </p>
                 </label>
               </div>
@@ -271,9 +272,14 @@ export default function Detector() {
               {batchResults.length > 0 && (
                 <div className="mt-6 space-y-4">
                   <div className="flex justify-between items-center">
-                    <p className="text-sm font-medium">
-                      Results ({batchResults.length} messages processed)
-                    </p>
+                    <div>
+                      <p className="text-sm font-medium">
+                        Results ({batchResults.length} messages processed)
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Spam: {batchResults.filter(r => r.verdict === 'spam').length} | Ham: {batchResults.filter(r => r.verdict === 'ham').length}
+                      </p>
+                    </div>
                     <Button
                       onClick={handleBatchDownload}
                       disabled={isLoading}

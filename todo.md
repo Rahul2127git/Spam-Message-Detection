@@ -46,3 +46,15 @@
 - [x] Final verification of all features
 - [x] Create checkpoint
 - [x] Deliver to user
+
+
+## Phase 8: Performance & Format Support
+- [x] Optimize batch processing speed (parallel processing with limit of 3)
+- [x] Add support for Excel (.xlsx, .xls) files
+- [x] Add support for JSON files
+- [x] Add support for TSV files
+- [x] Add support for XML files
+- [x] Implement streaming/chunked processing for large files
+- [x] Add file format detection and validation
+- [x] Increase database column size for large messages (LONGTEXT)
+- [x] Add batch results CSV download endpoint
