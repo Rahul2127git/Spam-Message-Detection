@@ -12,7 +12,7 @@
 - [x] Implement /api/predict REST endpoint
 - [x] Build batch prediction processing logic
 - [x] Create analytics tracking procedures
-- [ ] Write backend tests for prediction logic
+- [x] Write backend tests for prediction logic
 
 ## Phase 3: Frontend Pages
 - [x] Create Home page with hero section and demo input

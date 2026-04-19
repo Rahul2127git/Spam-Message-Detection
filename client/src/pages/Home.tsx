@@ -68,16 +68,20 @@ export default function Home() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/detector">
-                <Button size="lg" className="w-full sm:w-auto">
-                  Try Detector
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
+                <Link href="/detector">
+                <a className="inline-block">
+                  <Button size="lg" className="w-full sm:w-auto">
+                    Try Detector
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </a>
               </Link>
               <Link href="/about">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                  Learn More
-                </Button>
+                <a className="inline-block">
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                    Learn More
+                  </Button>
+                </a>
               </Link>
             </div>
           </div>
@@ -251,15 +255,19 @@ export default function Home() {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/detector">
-              <Button size="lg">
-                Get Started
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
+              <a className="inline-block">
+                <Button size="lg">
+                  Get Started
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </a>
             </Link>
             <Link href="/dashboard">
-              <Button size="lg" variant="outline">
-                View Analytics
-              </Button>
+              <a className="inline-block">
+                <Button size="lg" variant="outline">
+                  View Analytics
+                </Button>
+              </a>
             </Link>
           </div>
         </div>
