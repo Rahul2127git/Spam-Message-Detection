@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, Shield, Zap, BarChart3, Loader2 } from "lucide-react";
-import { Link } from "wouter";
+import { useLocation } from "wouter";
 import { toast } from "sonner";
 
 interface DemoResult {
@@ -12,6 +12,7 @@ interface DemoResult {
 }
 
 export default function Home() {
+  const [, setLocation] = useLocation();
   const [demoMessage, setDemoMessage] = useState("");
   const [demoResult, setDemoResult] = useState<DemoResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -68,21 +69,22 @@ export default function Home() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/detector">
-                <a className="inline-block">
-                  <Button size="lg" className="w-full sm:w-auto">
-                    Try Detector
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </a>
-              </Link>
-              <Link href="/about">
-                <a className="inline-block">
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                    Learn More
-                  </Button>
-                </a>
-              </Link>
+              <Button
+                size="lg"
+                className="w-full sm:w-auto"
+                onClick={() => setLocation("/detector")}
+              >
+                Try Detector
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={() => setLocation("/about")}
+              >
+                Learn More
+              </Button>
             </div>
           </div>
 
@@ -254,21 +256,20 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/detector">
-              <a className="inline-block">
-                <Button size="lg">
-                  Get Started
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </a>
-            </Link>
-            <Link href="/dashboard">
-              <a className="inline-block">
-                <Button size="lg" variant="outline">
-                  View Analytics
-                </Button>
-              </a>
-            </Link>
+            <Button
+              size="lg"
+              onClick={() => setLocation("/detector")}
+            >
+              Get Started
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => setLocation("/dashboard")}
+            >
+              View Analytics
+            </Button>
           </div>
         </div>
       </section>
