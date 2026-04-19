@@ -22,24 +22,32 @@ export default function Navigation() {
         {/* Navigation Links */}
         <div className="flex items-center gap-1 sm:gap-2">
           <Link href="/">
-            <Button variant="ghost" className="text-sm">
-              Home
-            </Button>
+            <a className="inline-block">
+              <Button variant="ghost" className="text-sm">
+                Home
+              </Button>
+            </a>
           </Link>
           <Link href="/detector">
-            <Button variant="ghost" className="text-sm">
-              Detector
-            </Button>
+            <a className="inline-block">
+              <Button variant="ghost" className="text-sm">
+                Detector
+              </Button>
+            </a>
           </Link>
           <Link href="/dashboard">
-            <Button variant="ghost" className="text-sm">
-              Dashboard
-            </Button>
+            <a className="inline-block">
+              <Button variant="ghost" className="text-sm">
+                Dashboard
+              </Button>
+            </a>
           </Link>
           <Link href="/about">
-            <Button variant="ghost" className="text-sm">
-              About
-            </Button>
+            <a className="inline-block">
+              <Button variant="ghost" className="text-sm">
+                About
+              </Button>
+            </a>
           </Link>
 
           {/* Theme Toggle */}
