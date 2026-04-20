@@ -1,54 +1,34 @@
 import { useTheme } from "@/contexts/ThemeContext";
 import { Moon, Sun } from "lucide-react";
-import { useLocation } from "wouter";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 
 export default function Navigation() {
   const { theme, toggleTheme } = useTheme();
-  const [, setLocation] = useLocation();
 
   return (
     <nav className="sticky top-0 z-50 bg-background border-b border-border">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo */}
-        <button
-          onClick={() => setLocation("/")}
-          className="flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity bg-transparent border-none cursor-pointer p-0"
-        >
+        <Link href="/" className="flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity">
           <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
             <span className="text-white text-sm font-bold">S</span>
           </div>
           <span className="hidden sm:inline">SpamShield AI</span>
-        </button>
+        </Link>
 
         {/* Navigation Links */}
         <div className="flex items-center gap-1 sm:gap-2">
-          <Button
-            variant="ghost"
-            className="text-sm"
-            onClick={() => setLocation("/")}
-          >
+          <Button variant="ghost" className="text-sm" onClick={() => window.location.href = '/'}>
             Home
           </Button>
-          <Button
-            variant="ghost"
-            className="text-sm"
-            onClick={() => setLocation("/detector")}
-          >
+          <Button variant="ghost" className="text-sm" onClick={() => window.location.href = '/detector'}>
             Detector
           </Button>
-          <Button
-            variant="ghost"
-            className="text-sm"
-            onClick={() => setLocation("/dashboard")}
-          >
+          <Button variant="ghost" className="text-sm" onClick={() => window.location.href = '/dashboard'}>
             Dashboard
           </Button>
-          <Button
-            variant="ghost"
-            className="text-sm"
-            onClick={() => setLocation("/about")}
-          >
+          <Button variant="ghost" className="text-sm" onClick={() => window.location.href = '/about'}>
             About
           </Button>
 

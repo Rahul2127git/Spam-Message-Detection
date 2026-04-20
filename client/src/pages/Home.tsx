@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, Shield, Zap, BarChart3, Loader2 } from "lucide-react";
-import { useLocation } from "wouter";
 import { toast } from "sonner";
 
 interface DemoResult {
@@ -12,7 +11,6 @@ interface DemoResult {
 }
 
 export default function Home() {
-  const [, setLocation] = useLocation();
   const [demoMessage, setDemoMessage] = useState("");
   const [demoResult, setDemoResult] = useState<DemoResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -69,20 +67,11 @@ export default function Home() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                size="lg"
-                className="w-full sm:w-auto"
-                onClick={() => setLocation("/detector")}
-              >
+              <Button size="lg" className="w-full sm:w-auto" onClick={() => window.location.href = '/detector'}>
                 Try Detector
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="w-full sm:w-auto"
-                onClick={() => setLocation("/about")}
-              >
+              <Button size="lg" variant="outline" className="w-full sm:w-auto" onClick={() => window.location.href = '/about'}>
                 Learn More
               </Button>
             </div>
@@ -256,18 +245,11 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              size="lg"
-              onClick={() => setLocation("/detector")}
-            >
+            <Button size="lg" onClick={() => window.location.href = '/detector'}>
               Get Started
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={() => setLocation("/dashboard")}
-            >
+            <Button size="lg" variant="outline" onClick={() => window.location.href = '/dashboard'}>
               View Analytics
             </Button>
           </div>

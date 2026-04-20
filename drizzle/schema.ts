@@ -1,11 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, customType } from "drizzle-orm/mysql-core";
-
-// Define LONGTEXT type for large messages
-const longtext = customType<{ data: string }>({
-  dataType() {
-    return "LONGTEXT";
-  },
-});
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -37,10 +30,10 @@ export type InsertUser = typeof users.$inferInsert;
  */
 export const predictions = mysqlTable("predictions", {
   id: int("id").autoincrement().primaryKey(),
-  message: longtext("message").notNull(),
+  message: text("message").notNull(),
   verdict: mysqlEnum("verdict", ["spam", "ham"]).notNull(),
-  confidence: varchar("confidence", { length: 20 }).notNull(),
-  keywords: longtext("keywords"),
+  confidence: varchar("confidence", { length: 10 }).notNull(),
+  keywords: text("keywords"),
   messageType: mysqlEnum("messageType", ["sms", "email"]).default("sms"),
   userId: int("userId"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -61,10 +54,10 @@ export const analytics = mysqlTable("analytics", {
   trueNegatives: int("trueNegatives").default(0).notNull(),
   falsePositives: int("falsePositives").default(0).notNull(),
   falseNegatives: int("falseNegatives").default(0).notNull(),
-  accuracy: varchar("accuracy", { length: 20 }).default("0.95").notNull(),
+  accuracy: varchar("accuracy", { length: 10 }).default("0.95").notNull(),
   smsTotal: int("smsTotal").default(0).notNull(),
   emailTotal: int("emailTotal").default(0).notNull(),
-  spamPercentage: varchar("spamPercentage", { length: 20 }).default("0").notNull(),
+  spamPercentage: varchar("spamPercentage", { length: 10 }).default("0").notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
