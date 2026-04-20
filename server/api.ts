@@ -6,6 +6,8 @@ import csv from "csv-parser";
 import { Readable } from "stream";
 
 const upload = multer({ storage: multer.memoryStorage() });
+const MAX_BATCH_SIZE = 20; // Reduced to prevent timeout
+const REQUEST_TIMEOUT = 600000; // 10 minutes timeout
 
 async function classifyMessage(message: string) {
   try {
@@ -120,80 +122,113 @@ export function registerAPIRoutes(app: Express) {
     }
   });
 
-  // Batch prediction endpoint - improved with proper async handling
+  // Simplified batch prediction endpoint - CSV only, sequential processing
   app.post("/api/predict/batch", upload.single("file"), async (req: any, res: Response) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
       }
 
+      // Set longer timeout for batch processing
+      req.setTimeout(REQUEST_TIMEOUT);
+      res.setTimeout(REQUEST_TIMEOUT);
+
       const results: any[] = [];
       const errors: any[] = [];
-      const rows: any[] = [];
-
-      // First, collect all rows
-      const stream = Readable.from([req.file.buffer]);
 
       return new Promise<void>((resolve) => {
+        const stream = Readable.from([req.file.buffer]);
+
         stream
           .pipe(csv())
           .on("data", (row: any) => {
-            rows.push(row);
+            // Collect rows but don't process yet
           })
           .on("end", async () => {
-            // Process all rows sequentially to ensure completion
-            for (let i = 0; i < rows.length; i++) {
-              try {
-                const row = rows[i];
-                const messageText = row.message || row.text || Object.values(row)[0];
+            // Re-parse to get rows
+            const rows: any[] = [];
+            const stream2 = Readable.from([req.file.buffer]);
 
-                if (!messageText) {
-                  errors.push({ row: i + 1, error: "No message text found" });
-                  continue;
+            stream2
+              .pipe(csv())
+              .on("data", (row: any) => {
+                rows.push(row);
+              })
+              .on("end", async () => {
+                // Check batch size
+                if (rows.length > MAX_BATCH_SIZE) {
+                  res.status(400).json({
+                    error: "Batch too large",
+                    details: `Maximum ${MAX_BATCH_SIZE} rows allowed. Got ${rows.length} rows. Please split into smaller files.`,
+                    maxSize: MAX_BATCH_SIZE,
+                  });
+                  resolve();
+                  return;
                 }
 
-                const prediction = await classifyMessage(messageText);
+                // Process rows sequentially
+                for (let i = 0; i < rows.length; i++) {
+                  try {
+                    const row = rows[i];
+                    const messageText = row.message || row.text || row.content || Object.values(row)[0];
 
-                results.push({
-                  row: i + 1,
-                  message: messageText.substring(0, 100),
-                  verdict: prediction.verdict,
-                  confidence: prediction.confidence,
+                    if (!messageText) {
+                      errors.push({ row: i + 1, error: "No message text found" });
+                      continue;
+                    }
+
+                    const prediction = await classifyMessage(String(messageText));
+
+                    results.push({
+                      row: i + 1,
+                      message: String(messageText).substring(0, 100),
+                      verdict: prediction.verdict,
+                      confidence: prediction.confidence,
+                    });
+
+                    // Store in database
+                    await createPrediction({
+                      message: String(messageText),
+                      verdict: prediction.verdict,
+                      confidence: prediction.confidence.toString(),
+                      keywords: JSON.stringify(prediction.keywords),
+                      messageType: "sms",
+                    });
+                  } catch (error) {
+                    errors.push({ row: i + 1, error: String(error) });
+                  }
+                }
+
+                // Update analytics
+                const currentAnalytics = await getOrCreateAnalytics();
+                if (currentAnalytics && results.length > 0) {
+                  const spamCount = results.filter((r) => r.verdict === "spam").length;
+                  const hamCount = results.filter((r) => r.verdict === "ham").length;
+
+                  await updateAnalytics({
+                    totalPredictions: currentAnalytics.totalPredictions + results.length,
+                    spamCount: currentAnalytics.spamCount + spamCount,
+                    hamCount: currentAnalytics.hamCount + hamCount,
+                  });
+                }
+
+                res.json({
+                  results,
+                  errors,
+                  count: results.length,
+                  errorCount: errors.length,
+                  maxBatchSize: MAX_BATCH_SIZE,
                 });
-
-                // Store in database
-                await createPrediction({
-                  message: messageText,
-                  verdict: prediction.verdict,
-                  confidence: prediction.confidence.toString(),
-                  keywords: JSON.stringify(prediction.keywords),
-                  messageType: "sms",
+                resolve();
+              })
+              .on("error", (error: any) => {
+                console.error("CSV parsing error:", error);
+                res.status(400).json({
+                  error: "Failed to parse CSV file",
+                  details: error.message,
                 });
-              } catch (error) {
-                errors.push({ row: i + 1, error: String(error) });
-              }
-            }
-
-            // Update analytics once after all predictions
-            const currentAnalytics = await getOrCreateAnalytics();
-            if (currentAnalytics && results.length > 0) {
-              const spamCount = results.filter((r) => r.verdict === "spam").length;
-              const hamCount = results.filter((r) => r.verdict === "ham").length;
-
-              await updateAnalytics({
-                totalPredictions: currentAnalytics.totalPredictions + results.length,
-                spamCount: currentAnalytics.spamCount + spamCount,
-                hamCount: currentAnalytics.hamCount + hamCount,
+                resolve();
               });
-            }
-
-            res.json({
-              results,
-              errors,
-              count: results.length,
-              errorCount: errors.length,
-            });
-            resolve();
           })
           .on("error", (error: any) => {
             console.error("CSV parsing error:", error);
@@ -207,6 +242,97 @@ export function registerAPIRoutes(app: Express) {
     } catch (error) {
       console.error("Batch prediction error:", error);
       res.status(500).json({ error: "Failed to process batch predictions" });
+    }
+  });
+
+  // Download batch results as CSV
+  app.post("/api/predict/batch/download", upload.single("file"), async (req: any, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      req.setTimeout(REQUEST_TIMEOUT);
+      res.setTimeout(REQUEST_TIMEOUT);
+
+      const results: any[] = [];
+
+      return new Promise<void>((resolve) => {
+        const stream = Readable.from([req.file.buffer]);
+
+        stream
+          .pipe(csv())
+          .on("data", () => {
+            // Placeholder
+          })
+          .on("end", async () => {
+            // Re-parse to get rows
+            const rows: any[] = [];
+            const stream2 = Readable.from([req.file.buffer]);
+
+            stream2
+              .pipe(csv())
+              .on("data", (row: any) => {
+                rows.push(row);
+              })
+              .on("end", async () => {
+                // Check batch size
+                if (rows.length > MAX_BATCH_SIZE) {
+                  res.status(400).json({
+                    error: "Batch too large",
+                    details: `Maximum ${MAX_BATCH_SIZE} rows allowed.`,
+                  });
+                  resolve();
+                  return;
+                }
+
+                // Process rows
+                for (let i = 0; i < rows.length; i++) {
+                  try {
+                    const row = rows[i];
+                    const messageText = row.message || row.text || row.content || Object.values(row)[0];
+
+                    if (!messageText) continue;
+
+                    const prediction = await classifyMessage(String(messageText));
+
+                    results.push({
+                      row: i + 1,
+                      message: String(messageText).substring(0, 100),
+                      verdict: prediction.verdict,
+                      confidence: prediction.confidence.toFixed(4),
+                    });
+                  } catch (error) {
+                    // Skip errors in download
+                  }
+                }
+
+                // Generate CSV
+                const csvContent = [
+                  "Row,Message,Verdict,Confidence",
+                  ...results.map((r) => `${r.row},"${r.message.replace(/"/g, '""')}",${r.verdict},${r.confidence}`),
+                ].join("\n");
+
+                res.setHeader("Content-Type", "text/csv");
+                res.setHeader("Content-Disposition", "attachment; filename=spam-predictions.csv");
+                res.send(csvContent);
+                resolve();
+              })
+              .on("error", (error: any) => {
+                console.error("CSV parsing error:", error);
+                res.status(400).json({ error: "Failed to parse CSV file" });
+                resolve();
+              });
+          })
+          .on("error", (error: any) => {
+            console.error("CSV parsing error:", error);
+            res.status(400).json({ error: "Failed to parse CSV file" });
+            resolve();
+          });
+      });
+    } catch (error) {
+      console.error("Download error:", error);
+      res.status(500).json({ error: "Failed to generate download" });
     }
   });
 
@@ -255,96 +381,6 @@ export function registerAPIRoutes(app: Express) {
     } catch (error) {
       console.error("Analytics error:", error);
       res.status(500).json({ error: "Failed to fetch analytics" });
-    }
-  });
-
-  // Batch results download endpoint
-  app.post("/api/predict/batch/download", upload.single("file"), async (req: any, res: Response) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ error: "No file uploaded" });
-      }
-
-      const results: any[] = [];
-      const rows: any[] = [];
-
-      const stream = Readable.from([req.file.buffer]);
-
-      return new Promise<void>((resolve) => {
-        stream
-          .pipe(csv())
-          .on("data", (row: any) => {
-            rows.push(row);
-          })
-          .on("end", async () => {
-            // Process all rows
-            for (let i = 0; i < rows.length; i++) {
-              try {
-                const row = rows[i];
-                const messageText = row.message || row.text || Object.values(row)[0];
-
-                if (!messageText) continue;
-
-                const prediction = await classifyMessage(messageText);
-
-                results.push({
-                  message: messageText,
-                  verdict: prediction.verdict,
-                  confidence: (prediction.confidence * 100).toFixed(2) + "%",
-                  keywords: prediction.keywords.map((k: any) => k.word).join(", "),
-                });
-
-                // Store in database
-                await createPrediction({
-                  message: messageText,
-                  verdict: prediction.verdict,
-                  confidence: prediction.confidence.toString(),
-                  keywords: JSON.stringify(prediction.keywords),
-                  messageType: "sms",
-                });
-              } catch (error) {
-                console.error("Error processing row:", error);
-              }
-            }
-
-            // Generate CSV response
-            if (results.length === 0) {
-              res.status(400).json({ error: "No valid messages to process" });
-              resolve();
-              return;
-            }
-
-            const csv_headers = ["message", "verdict", "confidence", "keywords"];
-            const csv_rows = results.map((r) =>
-              csv_headers
-                .map((h) => {
-                  const value = r[h as keyof typeof r];
-                  // Escape quotes and wrap in quotes if contains comma
-                  if (typeof value === "string" && (value.includes(",") || value.includes('"'))) {
-                    return `"${value.replace(/"/g, '""')}"`;
-                  }
-                  return value;
-                })
-                .join(",")
-            );
-
-            const csv_content = [csv_headers.join(","), ...csv_rows].join("\n");
-
-            res.setHeader("Content-Type", "text/csv");
-            res.setHeader("Content-Disposition", "attachment; filename=spam-predictions.csv");
-            res.send(csv_content);
-
-            resolve();
-          })
-          .on("error", (error: any) => {
-            console.error("CSV parsing error:", error);
-            res.status(400).json({ error: "Failed to parse CSV file" });
-            resolve();
-          });
-      });
-    } catch (error) {
-      console.error("Download error:", error);
-      res.status(500).json({ error: "Failed to generate download" });
     }
   });
 }
