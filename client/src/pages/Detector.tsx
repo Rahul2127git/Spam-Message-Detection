@@ -250,7 +250,7 @@ export default function Detector() {
                 Batch Upload
               </CardTitle>
               <CardDescription>
-                Upload a CSV file with up to 20 messages to analyze. Each batch processes sequentially.
+                Upload a CSV file with any number of messages to analyze. Each row is processed sequentially.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -271,7 +271,7 @@ export default function Detector() {
                     Click to upload or drag and drop
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    CSV format • Maximum 20 rows • Max 10MB file size
+                    CSV format • Unlimited rows • Max 10MB file size
                   </p>
                 </label>
               </div>
