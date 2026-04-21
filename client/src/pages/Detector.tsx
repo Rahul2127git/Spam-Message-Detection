@@ -68,13 +68,21 @@ export default function Detector() {
         body: formData,
       });
 
-      if (!response.ok) throw new Error("Batch prediction failed");
-
       const data = await response.json();
-      setBatchResults(data.results);
-      toast.success(`Processed ${data.results.length} messages`);
+
+      if (!response.ok) {
+        throw new Error(data.details || data.error || "Batch prediction failed");
+      }
+
+      setBatchResults(data.results || []);
+      if (data.errors && data.errors.length > 0) {
+        toast.warning(`Processed ${data.results.length} messages with ${data.errors.length} errors`);
+      } else {
+        toast.success(`Processed ${data.results.length} messages`);
+      }
     } catch (error) {
-      toast.error("Failed to process batch file");
+      const errorMsg = error instanceof Error ? error.message : "Failed to process batch file";
+      toast.error(errorMsg);
       console.error(error);
     } finally {
       setIsLoading(false);

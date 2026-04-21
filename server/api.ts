@@ -6,8 +6,8 @@ import csv from "csv-parser";
 import { Readable } from "stream";
 
 const upload = multer({ storage: multer.memoryStorage() });
-const MAX_BATCH_SIZE = 20; // Maximum rows per batch
-const REQUEST_TIMEOUT = 600000; // 10 minutes timeout
+const MAX_BATCH_SIZE = 20;
+const REQUEST_TIMEOUT = 600000; // 10 minutes
 
 async function classifyMessage(message: string) {
   try {
@@ -73,21 +73,28 @@ Respond with a JSON object containing:
   }
 }
 
-// Helper function to parse CSV from buffer
+// Helper function to parse CSV from buffer with better error handling
 function parseCSVFromBuffer(buffer: Buffer): Promise<any[]> {
   return new Promise((resolve, reject) => {
     const rows: any[] = [];
     const stream = Readable.from([buffer]);
+    let rowCount = 0;
 
     stream
       .pipe(csv())
       .on("data", (row: any) => {
-        rows.push(row);
+        rowCount++;
+        // Filter out empty rows
+        if (Object.values(row).some((v) => v && String(v).trim().length > 0)) {
+          rows.push(row);
+        }
       })
       .on("end", () => {
+        console.log(`CSV parsing complete: ${rowCount} total rows, ${rows.length} valid rows`);
         resolve(rows);
       })
       .on("error", (error: any) => {
+        console.error("CSV parsing error:", error);
         reject(error);
       });
   });
@@ -149,6 +156,8 @@ export function registerAPIRoutes(app: Express) {
         return res.status(400).json({ error: "No file uploaded" });
       }
 
+      console.log(`Batch upload received: ${req.file.originalname}, size: ${req.file.size} bytes`);
+
       // Set longer timeout for batch processing
       req.setTimeout(REQUEST_TIMEOUT);
       res.setTimeout(REQUEST_TIMEOUT);
@@ -165,11 +174,13 @@ export function registerAPIRoutes(app: Express) {
         });
       }
 
+      console.log(`Parsed ${rows.length} rows from CSV`);
+
       // Check batch size
       if (rows.length === 0) {
         return res.status(400).json({
           error: "No data found in file",
-          details: "CSV file appears to be empty",
+          details: "CSV file appears to be empty or has no valid rows",
         });
       }
 
@@ -188,12 +199,22 @@ export function registerAPIRoutes(app: Express) {
       for (let i = 0; i < rows.length; i++) {
         try {
           const row = rows[i];
-          const messageText = row.message || row.text || row.content || Object.values(row)[0];
+          // Try to find the message in common column names
+          const messageText =
+            row.message ||
+            row.text ||
+            row.content ||
+            row.Message ||
+            row.Text ||
+            row.Content ||
+            Object.values(row)[0];
 
-          if (!messageText) {
+          if (!messageText || String(messageText).trim().length === 0) {
             errors.push({ row: i + 1, error: "No message text found" });
             continue;
           }
+
+          console.log(`Processing row ${i + 1}: ${String(messageText).substring(0, 50)}...`);
 
           const prediction = await classifyMessage(String(messageText));
 
@@ -213,6 +234,7 @@ export function registerAPIRoutes(app: Express) {
             messageType: "sms",
           });
         } catch (error) {
+          console.error(`Error processing row ${i + 1}:`, error);
           errors.push({ row: i + 1, error: String(error) });
         }
       }
@@ -229,6 +251,8 @@ export function registerAPIRoutes(app: Express) {
           hamCount: currentAnalytics.hamCount + hamCount,
         });
       }
+
+      console.log(`Batch processing complete: ${results.length} successful, ${errors.length} errors`);
 
       res.json({
         results,
@@ -284,9 +308,16 @@ export function registerAPIRoutes(app: Express) {
       for (let i = 0; i < rows.length; i++) {
         try {
           const row = rows[i];
-          const messageText = row.message || row.text || row.content || Object.values(row)[0];
+          const messageText =
+            row.message ||
+            row.text ||
+            row.content ||
+            row.Message ||
+            row.Text ||
+            row.Content ||
+            Object.values(row)[0];
 
-          if (!messageText) continue;
+          if (!messageText || String(messageText).trim().length === 0) continue;
 
           const prediction = await classifyMessage(String(messageText));
 
