@@ -2,11 +2,9 @@ import { Express, Request, Response } from "express";
 import { invokeLLM } from "./_core/llm";
 import { createPrediction, getOrCreateAnalytics, updateAnalytics } from "./db";
 import multer from "multer";
-import csv from "csv-parser";
-import { Readable } from "stream";
+import Papa from "papaparse";
 
 const upload = multer({ storage: multer.memoryStorage() });
-const MAX_BATCH_SIZE = 20;
 const REQUEST_TIMEOUT = 600000; // 10 minutes
 
 async function classifyMessage(message: string) {
@@ -73,30 +71,28 @@ Respond with a JSON object containing:
   }
 }
 
-// Helper function to parse CSV from buffer with better error handling
+// Helper function to parse CSV from buffer using PapaParse
 function parseCSVFromBuffer(buffer: Buffer): Promise<any[]> {
   return new Promise((resolve, reject) => {
-    const rows: any[] = [];
-    const stream = Readable.from([buffer]);
-    let rowCount = 0;
-
-    stream
-      .pipe(csv())
-      .on("data", (row: any) => {
-        rowCount++;
-        // Filter out empty rows
-        if (Object.values(row).some((v) => v && String(v).trim().length > 0)) {
-          rows.push(row);
-        }
-      })
-      .on("end", () => {
-        console.log(`CSV parsing complete: ${rowCount} total rows, ${rows.length} valid rows`);
-        resolve(rows);
-      })
-      .on("error", (error: any) => {
-        console.error("CSV parsing error:", error);
-        reject(error);
+    try {
+      const csvString = buffer.toString("utf-8");
+      
+      Papa.parse(csvString, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results: any) => {
+          console.log(`CSV parsing complete: ${results.data.length} rows parsed`);
+          resolve(results.data);
+        },
+        error: (error: any) => {
+          console.error("CSV parsing error:", error);
+          reject(error);
+        },
       });
+    } catch (error) {
+      console.error("CSV conversion error:", error);
+      reject(error);
+    }
   });
 }
 
@@ -176,19 +172,11 @@ export function registerAPIRoutes(app: Express) {
 
       console.log(`Parsed ${rows.length} rows from CSV`);
 
-      // Check batch size
+      // Check if file is empty
       if (rows.length === 0) {
         return res.status(400).json({
           error: "No data found in file",
           details: "CSV file appears to be empty or has no valid rows",
-        });
-      }
-
-      if (rows.length > MAX_BATCH_SIZE) {
-        return res.status(400).json({
-          error: "Batch too large",
-          details: `Maximum ${MAX_BATCH_SIZE} rows allowed. Got ${rows.length} rows. Please split into smaller files.`,
-          maxSize: MAX_BATCH_SIZE,
         });
       }
 
@@ -259,7 +247,6 @@ export function registerAPIRoutes(app: Express) {
         errors,
         count: results.length,
         errorCount: errors.length,
-        maxBatchSize: MAX_BATCH_SIZE,
       });
     } catch (error) {
       console.error("Batch prediction error:", error);
@@ -292,13 +279,6 @@ export function registerAPIRoutes(app: Express) {
       if (rows.length === 0) {
         return res.status(400).json({
           error: "No data found in file",
-        });
-      }
-
-      if (rows.length > MAX_BATCH_SIZE) {
-        return res.status(400).json({
-          error: "Batch too large",
-          details: `Maximum ${MAX_BATCH_SIZE} rows allowed.`,
         });
       }
 
