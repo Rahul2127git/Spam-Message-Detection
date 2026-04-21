@@ -1,26 +1,26 @@
-# 🛡️ SpamShield AI
+# 🛡️ Spam Message Detection
 
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 [![React](https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4-06B6D4?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com/)
 
-> An advanced AI-powered spam detection system that uses LLM technology to classify SMS and email messages as spam or legitimate with 95%+ accuracy. Detect unwanted messages in real-time with detailed keyword analysis and batch processing capabilities.
+> An advanced AI-powered spam message detection system that uses LLM technology to classify SMS and email messages as spam or legitimate with 95%+ accuracy. Detect unwanted messages in real-time with detailed keyword analysis and batch processing capabilities.
 
 ## 🌟 Live Demo
 
-**🔗 [Try the Live Application](https://3000-io5cd2s76ccn549y16c27-720b4d1e.sg1.manus.computer)**
+**🔗 [Try the Live Application](https://spamshield-oh64jugk.manus.space)**
 
-*Experience instant spam detection with real-time predictions, animated confidence bars, and comprehensive analytics.*
+*Experience instant spam message detection with real-time predictions, animated confidence bars, and comprehensive analytics.*
 
 ## 📸 Screenshots
 
 ### Home Page
-![SpamShield AI Home](./screenshots/home.png)
+![Spam Message Detection Home](./screenshots/home.png)
 
 ## ✨ Features
 
-- **🤖 LLM-Powered Detection**: Advanced AI models analyze message content for accurate spam classification
+- **🤖 LLM-Powered Detection**: Advanced AI models analyze message content for accurate spam message classification
 - **⚡ Real-time Predictions**: Instant spam/ham verdicts with confidence scores (0-100%)
 - **📊 Keyword Heatmap**: Visual representation of top 5 keywords influencing the prediction
 - **📈 Animated Confidence Bar**: Dynamic progress bar showing prediction confidence
@@ -67,7 +67,7 @@
 ## 🏗️ Project Structure
 
 ```
-spamshield-ai/
+spam-message-detection/
 ├── client/                          # Frontend React application
 │   ├── src/
 │   │   ├── pages/
@@ -108,8 +108,8 @@ spamshield-ai/
 
 1. **Clone the repository:**
 ```bash
-git clone https://github.com/yourusername/spamshield-ai.git
-cd spamshield-ai
+git clone https://github.com/Rahul2127git/Spam-Message-Detection.git
+cd Spam-Message-Detection
 ```
 
 2. **Install dependencies:**
@@ -218,8 +218,8 @@ Navigate to `http://localhost:3000`
 - **Text**: #ffffff
 - **Primary Accent**: #00c2ff (cyan)
 - **Secondary Accent**: #ff4d4f (red)
-- **Success**: Green for ham predictions
-- **Danger**: Red for spam predictions
+- **Success**: Green for legitimate messages
+- **Danger**: Red for spam messages
 
 ### UI Features
 - Smooth fade-in animations for results
@@ -364,7 +364,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👨‍💻 Author
 
-**Built with ❤️ by the SpamShield AI Team**
+**Built with ❤️ by the Spam Message Detection Team**
 
 ## 🙏 Acknowledgments
 
@@ -372,7 +372,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Styled with Tailwind CSS 4 and Swiss Typography
 - Icons by Lucide React
 - Data visualization with Recharts
-- Powered by advanced LLM technology
+- Powered by advanced LLM technology for spam message detection
 - Inspired by real-world email and SMS security challenges
 
 ## 🚀 Future Roadmap
@@ -380,20 +380,20 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [ ] Real-time email inbox integration
 - [ ] SMS API integration (Twilio)
 - [ ] User prediction history and analytics
-- [ ] Custom spam threshold settings
+- [ ] Custom spam message threshold settings
 - [ ] Browser extension for email clients
 - [ ] Mobile app (React Native)
-- [ ] Advanced pattern recognition
-- [ ] Community-driven spam database
+- [ ] Advanced pattern recognition for spam detection
+- [ ] Community-driven spam message database
 - [ ] Multi-language support
 - [ ] API rate limiting and usage tracking
 
 ## 📞 Support
 
-For support, email support@spamshield.ai or open an issue on GitHub.
+For support, email support@spamdetection.ai or open an issue on GitHub.
 
 ---
 
 ⭐ **If you found this project helpful, please star it!** ⭐
 
-Made with 🛡️ for a safer inbox.
+Made with 🛡️ for spam-free messaging.
