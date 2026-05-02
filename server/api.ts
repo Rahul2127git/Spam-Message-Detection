@@ -3,6 +3,7 @@ import { invokeLLM } from "./_core/llm";
 import { createPrediction, getOrCreateAnalytics, updateAnalytics } from "./db";
 import multer from "multer";
 import Papa from "papaparse";
+import { generateSpamDetectionPDF } from "./reportGenerator";
 
 const upload = multer({ storage: multer.memoryStorage() });
 const REQUEST_TIMEOUT = 600000; // 10 minutes
@@ -372,6 +373,26 @@ export function registerAPIRoutes(app: Express) {
     } catch (error) {
       console.error("Analytics error:", error);
       res.status(500).json({ error: "Failed to fetch analytics" });
+    }
+  });
+
+  // Generate PDF report
+  app.post("/api/generate-report", async (req: any, res: Response) => {
+    try {
+      const { message, prediction, riskSummary, recommendations } = req.body;
+
+      if (!message || !prediction || !riskSummary || !recommendations) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      const pdfBuffer = await generateSpamDetectionPDF(message, prediction, riskSummary, recommendations);
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename="spam-detection-report-${Date.now()}.pdf"`);
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error("Error generating report:", error);
+      res.status(500).json({ error: "Failed to generate report" });
     }
   });
 }
