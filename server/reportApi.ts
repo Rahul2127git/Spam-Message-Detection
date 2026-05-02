@@ -3,6 +3,14 @@ import { generateSpamDetectionPDF } from "./reportGenerator";
 
 export const reportRouter = Router();
 
+
+
+export interface PredictionResult {
+  verdict: "spam" | "ham";
+  confidence: number;
+  keywords: string[];
+}
+
 interface ReportRequest {
   message: string;
   prediction: {
@@ -30,7 +38,14 @@ reportRouter.post("/generate-report", async (req, res) => {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    const pdfBuffer = await generateSpamDetectionPDF(message, prediction, riskSummary, recommendations);
+    // Convert keywords array to string array
+    const keywordsArray = prediction.keywords.map((k) => `${k.word} (${Math.round(k.weight * 100)}%)`);
+    const pdfBuffer = generateSpamDetectionPDF(
+      message,
+      { ...prediction, keywords: keywordsArray },
+      riskSummary,
+      recommendations
+    );
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `attachment; filename="spam-detection-report-${Date.now()}.pdf"`);
