@@ -1,4 +1,4 @@
-import jsPDF from "jspdf";
+import { jsPDF } from "jspdf";
 
 interface PredictionResult {
   verdict: "spam" | "ham";
