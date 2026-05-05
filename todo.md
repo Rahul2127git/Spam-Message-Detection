@@ -46,3 +46,8 @@
 - [x] Final verification of all features
 - [x] Create checkpoint
 - [x] Deliver to user
+
+
+## Phase 8: Bug Fixes
+- [x] Fix PDF download functionality - "Failed to download report" error
+- [x] Fix prediction values changing on multiple clicks - should maintain consistency

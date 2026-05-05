@@ -3,7 +3,7 @@ import { jsPDF } from "jspdf";
 interface PredictionResult {
   verdict: "spam" | "ham";
   confidence: number;
-  keywords: string[];
+  keywords: Array<string | { word: string; weight?: number }>;
 }
 
 interface RiskSummary {
@@ -181,15 +181,17 @@ export function generateSpamDetectionPDF(
 
   if (prediction.keywords && prediction.keywords.length > 0) {
     prediction.keywords.slice(0, 5).forEach((keyword, index) => {
+      // Handle both string and object keywords
+      const keywordStr = typeof keyword === "string" ? keyword : keyword.word || "";
       // Extract percentage from keyword string if present
-      const percentMatch = keyword.match(/\((\d+)%\)/);
+      const percentMatch = keywordStr.match(/\((\d+)%\)/);
       const percent = percentMatch ? parseInt(percentMatch[1]) : 80 - index * 10;
 
       // Keyword number and name
       doc.setFontSize(9);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(0, 194, 255);
-      const keywordName = keyword.replace(/ \(\d+%\)/, "");
+      const keywordName = keywordStr.replace(/ \(\d+%\)/, "");
       doc.text(`${index + 1}. ${keywordName}`, margin, yPosition);
 
       // Progress bar

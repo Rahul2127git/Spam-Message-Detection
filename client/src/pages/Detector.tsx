@@ -142,18 +142,29 @@ export default function Detector() {
       const riskSummary = generateRiskSummary(prediction);
       const recommendations = generateRecommendations(prediction);
 
+      // Convert keywords to string format if needed
+      const keywordsArray = Array.isArray(prediction.keywords)
+        ? prediction.keywords.map((k) => (typeof k === "string" ? k : k.word))
+        : [];
+
       const response = await fetch("/api/generate-report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message,
-          prediction,
+          prediction: {
+            ...prediction,
+            keywords: keywordsArray,
+          },
           riskSummary,
           recommendations,
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to generate report");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to generate report");
+      }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -167,7 +178,7 @@ export default function Detector() {
 
       toast.success("Report downloaded successfully");
     } catch (error) {
-      toast.error("Failed to download report");
+      toast.error(error instanceof Error ? error.message : "Failed to download report");
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -191,7 +202,13 @@ export default function Detector() {
       if (!response.ok) throw new Error("Prediction failed");
 
       const data = await response.json();
-      setPrediction(data);
+      // Create a new object to ensure state updates properly
+      const newPrediction = {
+        verdict: data.verdict,
+        confidence: data.confidence,
+        keywords: data.keywords,
+      };
+      setPrediction(newPrediction);
       toast.success("Prediction completed!");
     } catch (error) {
       toast.error("Failed to get prediction");
