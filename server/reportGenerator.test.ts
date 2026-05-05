@@ -127,4 +127,113 @@ describe("PDF Report Generation", () => {
       expect(buffer.toString("utf-8", 0, 4)).toBe("%PDF");
     });
   });
+
+  it("should generate 2-page PDF with all sections", () => {
+    const message = "Click here to win free money! Limited time offer! Act now!";
+    const prediction = {
+      verdict: "spam" as const,
+      confidence: 0.95,
+      keywords: [
+        { word: "click", weight: 0.95 },
+        { word: "free", weight: 0.9 },
+        { word: "limited", weight: 0.85 },
+        { word: "urgent", weight: 0.8 },
+        { word: "act now", weight: 0.75 },
+      ],
+    };
+    const riskSummary = {
+      level: "critical" as const,
+      score: 92,
+      description: "This message exhibits multiple spam indicators including urgency tactics, financial incentives, and call-to-action buttons.",
+    };
+    const recommendations = [
+      {
+        title: "Do Not Click Links",
+        description: "Avoid clicking any links in this message as they may lead to phishing sites.",
+        icon: "🔗",
+      },
+      {
+        title: "Mark as Spam",
+        description: "Report this message to your email provider to help protect others.",
+        icon: "🚫",
+      },
+    ];
+
+    const buffer = generateSpamDetectionPDF(message, prediction, riskSummary, recommendations);
+
+    expect(buffer).toBeInstanceOf(Buffer);
+    expect(buffer.length).toBeGreaterThan(5000); // 2-page PDF should be larger
+    expect(buffer.toString("utf-8", 0, 4)).toBe("%PDF");
+  });
+
+  it("should generate PDF with circular gauge visualization", () => {
+    const message = "Test message";
+    const prediction = {
+      verdict: "spam" as const,
+      confidence: 0.75,
+      keywords: ["test"],
+    };
+    const riskSummary = {
+      level: "high" as const,
+      score: 75,
+      description: "High risk message detected.",
+    };
+
+    const buffer = generateSpamDetectionPDF(message, prediction, riskSummary, []);
+
+    expect(buffer).toBeInstanceOf(Buffer);
+    expect(buffer.length).toBeGreaterThan(0);
+    expect(buffer.toString("utf-8", 0, 4)).toBe("%PDF");
+  });
+
+  it("should generate PDF with feature analysis table", () => {
+    const message = "Test message";
+    const prediction = {
+      verdict: "spam" as const,
+      confidence: 0.88,
+      keywords: [
+        { word: "urgent", weight: 0.95 },
+        { word: "click", weight: 0.88 },
+        { word: "free", weight: 0.82 },
+      ],
+    };
+    const riskSummary = {
+      level: "high" as const,
+      score: 85,
+      description: "Multiple spam indicators detected.",
+    };
+
+    const buffer = generateSpamDetectionPDF(message, prediction, riskSummary, []);
+
+    expect(buffer).toBeInstanceOf(Buffer);
+    expect(buffer.length).toBeGreaterThan(0);
+    expect(buffer.toString("utf-8", 0, 4)).toBe("%PDF");
+  });
+
+  it("should generate PDF with risk assessment cards", () => {
+    const message = "Test message";
+    const prediction = {
+      verdict: "ham" as const,
+      confidence: 0.92,
+      keywords: ["greeting"],
+    };
+    const riskSummary = {
+      level: "low" as const,
+      score: 8,
+      description: "This appears to be a legitimate message.",
+    };
+    const recommendations = [
+      {
+        title: "Safe to Open",
+        description: "This message appears legitimate.",
+        icon: "✅",
+      },
+    ];
+
+    const buffer = generateSpamDetectionPDF(message, prediction, riskSummary, recommendations);
+
+    expect(buffer).toBeInstanceOf(Buffer);
+    expect(buffer.length).toBeGreaterThan(0);
+    expect(buffer.toString("utf-8", 0, 4)).toBe("%PDF");
+  });
 });
