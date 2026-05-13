@@ -195,10 +195,10 @@ export function generateSpamDetectionPDF(
   const hamCount = 7 - spamCount;
   doc.setTextColor(COLORS.red[0], COLORS.red[1], COLORS.red[2]);
   doc.setFontSize(9);
-  doc.text(`⚠ ${spamCount} flagged indicators`, 80, yPosition + 9);
+  doc.text(`& ${spamCount} flagged indicators`, 80, yPosition + 9);
 
   doc.setTextColor(COLORS.green[0], COLORS.green[1], COLORS.green[2]);
-  doc.text(`✓ ${hamCount} within normal range`, pageWidth - margin - 50, yPosition + 9);
+  doc.text(`' ${hamCount} within normal range`, pageWidth - margin - 50, yPosition + 9);
 
   yPosition += 20;
 
@@ -309,7 +309,7 @@ export function generateSpamDetectionPDF(
   doc.setFontSize(8);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(COLORS.red[0], COLORS.red[1], COLORS.red[2]);
-  doc.text("⚠ Spam Risk", cardX1 + 2, yPosition + 4);
+  doc.text("& Spam Risk", cardX1 + 2, yPosition + 4);
 
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
@@ -330,7 +330,7 @@ export function generateSpamDetectionPDF(
   doc.setFontSize(8);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(COLORS.green[0], COLORS.green[1], COLORS.green[2]);
-  doc.text("✓ Confidence", cardX2 + 2, yPosition + 4);
+  doc.text("' Confidence", cardX2 + 2, yPosition + 4);
 
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
