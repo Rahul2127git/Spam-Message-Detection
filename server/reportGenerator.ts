@@ -138,7 +138,8 @@ export function generateSpamDetectionPDF(
   message: string,
   prediction: PredictionResult,
   riskSummary: RiskSummary,
-  recommendations: Recommendation[]
+  recommendations: Recommendation[],
+  skipTrendProjection: boolean = false
 ): Buffer {
   const doc = new jsPDF({
     orientation: "portrait",
@@ -354,65 +355,67 @@ export function generateSpamDetectionPDF(
   yPosition = contentStartY + 5;
   currentPage = 2;
 
-  // Trend Projection (simplified visualization)
-  doc.setFontSize(11);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(COLORS.white[0], COLORS.white[1], COLORS.white[2]);
-  doc.text("Detection Trend Projection", margin, yPosition);
-  yPosition += 5;
+  if (!skipTrendProjection) {
+        // Trend Projection (simplified visualization)
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(COLORS.white[0], COLORS.white[1], COLORS.white[2]);
+      doc.text("Detection Trend Projection", margin, yPosition);
+      yPosition += 5;
 
-  doc.setFontSize(8);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(COLORS.lightGray[0], COLORS.lightGray[1], COLORS.lightGray[2]);
-  doc.text("5-point timeline generated from extracted indicators", margin, yPosition);
-  yPosition += 8;
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(COLORS.lightGray[0], COLORS.lightGray[1], COLORS.lightGray[2]);
+      doc.text("5-point timeline generated from extracted indicators", margin, yPosition);
+      yPosition += 8;
 
-  // Draw simplified line chart
-  const chartX = margin + 5;
-  const chartY = yPosition;
-  const chartWidth = maxWidth - 10;
-  const chartHeight = 20;
+      // Draw simplified line chart
+      const chartX = margin + 5;
+      const chartY = yPosition;
+      const chartWidth = maxWidth - 10;
+      const chartHeight = 20;
 
-  // Chart background
-  doc.setFillColor(COLORS.darkGray[0], COLORS.darkGray[1], COLORS.darkGray[2]);
-  doc.rect(chartX, chartY, chartWidth, chartHeight, "F");
-  doc.setDrawColor(COLORS.cyan[0], COLORS.cyan[1], COLORS.cyan[2]);
-  doc.setLineWidth(0.5);
-  doc.rect(chartX, chartY, chartWidth, chartHeight, "S");
+      // Chart background
+      doc.setFillColor(COLORS.darkGray[0], COLORS.darkGray[1], COLORS.darkGray[2]);
+      doc.rect(chartX, chartY, chartWidth, chartHeight, "F");
+      doc.setDrawColor(COLORS.cyan[0], COLORS.cyan[1], COLORS.cyan[2]);
+      doc.setLineWidth(0.5);
+      doc.rect(chartX, chartY, chartWidth, chartHeight, "S");
 
-  // Draw trend line (simulated)
-  doc.setDrawColor(COLORS.cyan[0], COLORS.cyan[1], COLORS.cyan[2]);
-  doc.setLineWidth(1);
-  const points = 5;
-  const xStep = chartWidth / (points - 1);
-  const baseY = chartY + chartHeight - 3;
+      // Draw trend line (simulated)
+      doc.setDrawColor(COLORS.cyan[0], COLORS.cyan[1], COLORS.cyan[2]);
+      doc.setLineWidth(1);
+      const points = 5;
+      const xStep = chartWidth / (points - 1);
+      const baseY = chartY + chartHeight - 3;
 
-  for (let i = 0; i < points - 1; i++) {
-    const x1 = chartX + i * xStep;
-    const y1 = baseY - (riskSummary.score / 100) * (chartHeight - 6);
-    const x2 = chartX + (i + 1) * xStep;
-    const y2 = baseY - (riskSummary.score / 100) * (chartHeight - 6) + (Math.random() - 0.5) * 3;
-    doc.line(x1, y1, x2, y2);
+      for (let i = 0; i < points - 1; i++) {
+        const x1 = chartX + i * xStep;
+        const y1 = baseY - (riskSummary.score / 100) * (chartHeight - 6);
+        const x2 = chartX + (i + 1) * xStep;
+        const y2 = baseY - (riskSummary.score / 100) * (chartHeight - 6) + (Math.random() - 0.5) * 3;
+        doc.line(x1, y1, x2, y2);
 
-    // Draw point
-    doc.setFillColor(COLORS.cyan[0], COLORS.cyan[1], COLORS.cyan[2]);
-    doc.circle(x1, y1, 1, "F");
-  }
+        // Draw point
+        doc.setFillColor(COLORS.cyan[0], COLORS.cyan[1], COLORS.cyan[2]);
+        doc.circle(x1, y1, 1, "F");
+      }
 
-  // Draw last point
-  doc.setFillColor(COLORS.cyan[0], COLORS.cyan[1], COLORS.cyan[2]);
-  doc.circle(chartX + (points - 1) * xStep, baseY - (riskSummary.score / 100) * (chartHeight - 6), 1, "F");
+      // Draw last point
+      doc.setFillColor(COLORS.cyan[0], COLORS.cyan[1], COLORS.cyan[2]);
+      doc.circle(chartX + (points - 1) * xStep, baseY - (riskSummary.score / 100) * (chartHeight - 6), 1, "F");
 
-  // X-axis labels
-  doc.setFontSize(7);
-  doc.setTextColor(COLORS.lightGray[0], COLORS.lightGray[1], COLORS.lightGray[2]);
-  const months = ["Jan", "Feb", "Mar", "Apr", "May"];
-  for (let i = 0; i < points; i++) {
-    const x = chartX + i * xStep;
-    doc.text(months[i], x - 2, chartY + chartHeight + 3);
-  }
+      // X-axis labels
+      doc.setFontSize(7);
+      doc.setTextColor(COLORS.lightGray[0], COLORS.lightGray[1], COLORS.lightGray[2]);
+      const months = ["Jan", "Feb", "Mar", "Apr", "May"];
+      for (let i = 0; i < points; i++) {
+        const x = chartX + i * xStep;
+        doc.text(months[i], x - 2, chartY + chartHeight + 3);
+      }
 
   yPosition += chartHeight + 12;
+  }
 
   // Personalized Action Plan
   doc.setFontSize(11);

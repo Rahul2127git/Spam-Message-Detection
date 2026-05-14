@@ -385,7 +385,7 @@ export function registerAPIRoutes(app: Express) {
         return res.status(400).json({ error: "Missing required fields" });
       }
 
-      const pdfBuffer = await generateSpamDetectionPDF(message, prediction, riskSummary, recommendations);
+      const pdfBuffer = await generateSpamDetectionPDF(message, prediction, riskSummary, recommendations, true);
 
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader("Content-Disposition", `attachment; filename="spam-detection-report-${Date.now()}.pdf"`);

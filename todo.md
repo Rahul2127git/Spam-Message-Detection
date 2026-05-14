@@ -72,3 +72,10 @@
 - [x] Update jsPDF font configuration to use proper UTF-8 encoding
 - [x] Test PDF generation with special characters and symbols
 - [x] Verify all text renders cleanly without encoding artifacts
+
+
+## Phase 11: Remove Detection Trend Projection from Downloaded PDFs
+- [x] Create separate PDF export function that excludes Detection Trend Projection section
+- [x] Keep main code unchanged - only affect downloaded report output
+- [x] Verify PDF still renders properly as single page without trend chart
+- [x] Test download functionality with updated report format
